@@ -1,0 +1,95 @@
+import heapq
+
+# Define the maze as a 2D grid with nodes represented by characters
+maze = [
+    ['A', ' ', ' ', ' ', ' ', ' ', ' '],
+    ['#', '#', ' ', '#', '#', '#', '#'],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    ['#', '#', ' ', '#', '#', '#', '#'],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    ['#', '#', ' ', '#', '#', '#', '#'],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    ['#', '#', ' ', '#', '#', '#', '#'],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    ['#', '#', ' ', '#', '#', '#', '#'],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    ['#', '#', 'Y', '#', '#', '#', '#']
+]
+
+# Define the heuristic function as the Manhattan distance between two points
+def heuristic(node, goal):
+    x1, y1 = node
+    x2, y2 = goal
+    return abs(x1 - x2) + abs(y1 - y2)
+
+# Define the A* search algorithm
+def astar_search(maze, start, goal):
+    # Define the directions: Up, Down, Left, Right
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    # Initialize the priority queue with the start node
+    queue = [(0, start)]
+    heapq.heapify(queue)
+
+    # Initialize the cost and came_from dictionaries
+    cost = {start: 0}
+    came_from = {start: None}
+
+    while queue:
+        # Get the node with the lowest priority (cost + heuristic)
+        current_cost, current_node = heapq.heappop(queue)
+
+        # Check if the current node is the goal
+        if current_node == goal:
+            break
+
+        # Explore the neighbors of the current node
+        for dx, dy in directions:
+            x, y = current_node
+            neighbor = (x + dx, y + dy)
+
+            # Check if the neighbor is a valid node
+            if 0 <= neighbor[0] < len(maze) and 0 <= neighbor[1] < len(maze[0]) and maze[neighbor[0]][neighbor[1]] != '#':
+                # Calculate the cost of reaching the neighbor node
+                new_cost = cost[current_node] + 1
+
+                # Update the cost and came_from dictionaries if the new cost is lower
+                if neighbor not in cost or new_cost < cost[neighbor]:
+                    cost[neighbor] = new_cost
+                    priority = new_cost + heuristic(neighbor, goal)
+                    heapq.heappush(queue, (priority, neighbor))
+                    came_from[neighbor] = current_node
+
+    # Reconstruct the path from the goal to the start if a path exists
+    if goal in came_from:
+        path = []
+        current_node = goal
+        while current_node != start:
+            path.append(current_node)
+            current_node = came_from[current_node]
+        path.append(start)
+
+        # Reverse the path to obtain the correct order
+        path.reverse()
+
+        return path
+    else:
+        return None
+
+# Define the start and goal positions
+start = (0, 0)
+goal = (len(maze) - 1, len(maze[0]) - 1)
+
+# Find the path using A* search
+path = astar_search(maze, start, goal)
+
+# Print the resulting path if it exists
+if path is not None:
+    for node in path:
+        x, y = node
+        maze[x][y] = '*'
+
+    for row in maze:
+        print(' '.join(row))
+else:
+    print("No path found.")
